@@ -1,38 +1,79 @@
 ﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
+Console.WriteLine("Hello, AdventOfCode Day1!");
 
 var input = File.ReadAllText("input.txt");
 
-using var reader = new StringReader(input);
+Console.WriteLine($"Part1 = {Part1(input)}");
 
-var line = "";
+Console.WriteLine($"Part2 = {Part2(input)}");
 
-int maxHealth = 0;
-
-int currentHealth = 0;
-
-while (line != null)
+int Part1(string input)
 {
-    line = reader.ReadLine();
+    using var reader = new StringReader(input);
 
-    if(string.IsNullOrWhiteSpace(line))
+    var line = "";
+
+    int maxHealth = 0;
+
+    int currentHealth = 0;
+
+    while (line != null)
     {
-        if(currentHealth > maxHealth)
+        line = reader.ReadLine();
+
+        if (string.IsNullOrWhiteSpace(line))
         {
-            maxHealth = currentHealth;
+            if (currentHealth > maxHealth)
+            {
+                maxHealth = currentHealth;
+            }
+
+            currentHealth = 0;
+
+            continue;
         }
 
-        currentHealth = 0;
-
-        continue;
+        currentHealth += int.Parse(line);
     }
 
-    currentHealth += int.Parse(line);
+    if (currentHealth > maxHealth)
+    {
+        maxHealth = currentHealth;
+    }
+
+    return maxHealth;
 }
 
-if(currentHealth > maxHealth)
+int Part2(string input)
 {
-    maxHealth = currentHealth;
-}
+    using var reader = new StringReader(input);
 
-Console.WriteLine(maxHealth);
+    var line = "";
+
+    List<int> elfHealth = new ();
+
+    int currentHealth = 0;
+
+    while (line != null)
+    {
+        line = reader.ReadLine();
+
+        if (string.IsNullOrWhiteSpace(line))
+        {
+            elfHealth.Add(currentHealth);
+
+            currentHealth = 0;
+
+            continue;
+        }
+
+        currentHealth += int.Parse(line);
+    }
+
+    elfHealth.Add(currentHealth);
+
+    return
+        elfHealth.OrderByDescending(health => health)
+        .Take(3)
+        .Sum();
+}
