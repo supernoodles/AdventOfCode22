@@ -13,9 +13,9 @@ int Part1(string input)
 
     var line = "";
 
-    int maxHealth = 0;
+    int maxCalories = 0;
 
-    int currentHealth = 0;
+    int currentElfCalories = 0;
 
     while (line != null)
     {
@@ -23,25 +23,25 @@ int Part1(string input)
 
         if (string.IsNullOrWhiteSpace(line))
         {
-            if (currentHealth > maxHealth)
+            if (currentElfCalories > maxCalories)
             {
-                maxHealth = currentHealth;
+                maxCalories = currentElfCalories;
             }
 
-            currentHealth = 0;
+            currentElfCalories = 0;
 
             continue;
         }
 
-        currentHealth += int.Parse(line);
+        currentElfCalories += int.Parse(line);
     }
 
-    if (currentHealth > maxHealth)
+    if (currentElfCalories > maxCalories)
     {
-        maxHealth = currentHealth;
+        maxCalories = currentElfCalories;
     }
 
-    return maxHealth;
+    return maxCalories;
 }
 
 int Part2(string input)
@@ -50,9 +50,9 @@ int Part2(string input)
 
     var line = "";
 
-    List<int> elfHealth = new ();
+    List<int> elfCalories = new ();
 
-    int currentHealth = 0;
+    int currentElfCalories = 0;
 
     while (line != null)
     {
@@ -60,20 +60,20 @@ int Part2(string input)
 
         if (string.IsNullOrWhiteSpace(line))
         {
-            elfHealth.Add(currentHealth);
+            elfCalories.Add(currentElfCalories);
 
-            currentHealth = 0;
+            currentElfCalories = 0;
 
             continue;
         }
 
-        currentHealth += int.Parse(line);
+        currentElfCalories += int.Parse(line);
     }
 
-    elfHealth.Add(currentHealth);
+    elfCalories.Add(currentElfCalories);
 
     return
-        elfHealth.OrderByDescending(health => health)
+        elfCalories.OrderByDescending(health => health)
         .Take(3)
         .Sum();
 }
