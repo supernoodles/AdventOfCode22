@@ -72,7 +72,45 @@ int Part1(string input)
     return totalScore;
 }
 
+// X Lose 0     Rock        1
+// Y Draw 3     Paper       2
+// Z Win  6     Scissors    3
+
+//              Win         Draw        Lose
+// A Rock       Paper       Rock        Scissors
+// B Paper      Scissors    Paper       Rock
+// C Scissors   Rock        Scissors    Paper
+
 int Part2(string input)
 {
-    return 0;
+    Dictionary<string, int> Map = new() {
+        {"A X", 3},
+        {"B X", 1},
+        {"C X", 2},
+        {"A Y", 1 + 3},
+        {"B Y", 2 + 3},
+        {"C Y", 3 + 3},
+        {"A Z", 2 + 6},
+        {"B Z", 3 + 6},
+        {"C Z", 1 + 6}
+    };
+
+
+    using var reader = new StringReader(input);
+
+    var totalScore = 0;
+
+    while (true)
+    {
+        var line = reader.ReadLine();
+
+        if (line == null)
+        {
+            break;
+        }
+
+        totalScore += Map[line];
+    }
+
+    return totalScore;
 }
