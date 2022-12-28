@@ -95,22 +95,8 @@ int Part2(string input)
         {"C Z", 1 + 6}
     };
 
-
-    using var reader = new StringReader(input);
-
-    var totalScore = 0;
-
-    while (true)
-    {
-        var line = reader.ReadLine();
-
-        if (line == null)
-        {
-            break;
-        }
-
-        totalScore += Map[line];
-    }
-
-    return totalScore;
+    return 
+        input.Split("\n")
+            .Where(_ => !string.IsNullOrWhiteSpace(_))
+            .Sum(_ => Map[_]);
 }
