@@ -1,4 +1,4 @@
-﻿Console.WriteLine("Hello, AdventOfCode Day 2!");
+﻿Console.WriteLine("Hello, AdventOfCode Day 3!");
 
 var input = File.ReadAllText("input.txt");
 
@@ -22,7 +22,7 @@ int Part1(string input)
         .Where(_ => !string.IsNullOrWhiteSpace(_))
         .ToList();
 
-    var score = 0;
+    var totalPriority = 0;
 
     foreach (var rucksack in rucksacks)
     {
@@ -33,15 +33,41 @@ int Part1(string input)
 
         var common = firstCompartment.Intersect(secondCompartment).FirstOrDefault();
 
-        score += char.IsUpper(common)
+        totalPriority += char.IsUpper(common)
             ? common - 'A' + 27
             : common - 'a' + 1;
     }
 
-    return score;
+    return totalPriority;
 }
+
+int Priority(char letter) => 
+    char.IsUpper(letter)
+        ? letter - 'A' + 27
+        : letter - 'a' + 1;
 
 int Part2(string input)
 {
-    return 0;
+    var rucksacks = input
+     .Split('\n')
+     .Where(_ => !string.IsNullOrWhiteSpace(_))
+     .ToList();
+
+    var groups = rucksacks.Count() / 3;
+
+    var totalPriority =
+        Enumerable.Range(0, groups)
+            .Select(index => {
+                var group = rucksacks.Skip(index * 3).Take(3);
+                
+                var common = group.First()
+                    .Intersect(group.Skip(1).First())
+                    .Intersect(group.Skip(2).First())
+                    .FirstOrDefault();
+                
+                return Priority(common);
+            })
+            .Sum();
+
+    return totalPriority;
 }
