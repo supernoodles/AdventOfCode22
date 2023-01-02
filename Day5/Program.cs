@@ -2,6 +2,8 @@
 
 Console.WriteLine("Hello, AdventOfCode Day 5!");
 
+Regex matcher = new Regex(@"move (\d*) from (\d*) to (\d*)", RegexOptions.Compiled);
+
 var input = File.ReadAllText("input.txt");
 
 var inputTest = """
@@ -20,26 +22,26 @@ Console.WriteLine($"Part1 = {Part1(input)}");
 
 Console.WriteLine($"Part2 = {Part2(input)}");
 
-string Part1(string input)
-{
-    var lines = 
-        input.Split('\n')
+List<string> InputToLineList(string input) => 
+    input
+        .Split('\n')
         .Where(_ => !string.IsNullOrWhiteSpace(_))
-        .Select(_ => _.Replace("\r",""))
+        .Select(_ => _.Replace("\r", ""))
         .ToList();
 
+(List<Stack<string>> stacks, int currentLine) ReadMap(List<string> lines)
+{
     var firstLine = lines[0];
 
     var stackCount = (int)Math.Ceiling((decimal)firstLine.Length / 4m);
 
     var lists = new List<List<string>>(stackCount);
-
     var stacks = new List<Stack<string>>(stackCount);
 
     for (var i = 0; i < stackCount; ++i)
     {
         lists.Add(new List<string>());
-        stacks.Add(new Stack<string>());
+        stacks.Add(null);
     }
 
     var currentLine = 0;
@@ -57,7 +59,7 @@ string Part1(string input)
         {
             var slot = line.Substring(4 * index + 1, 1);
 
-            if(slot == " ")
+            if (slot == " ")
             {
                 continue;
             }
@@ -72,112 +74,74 @@ string Part1(string input)
         stacks[index] = new Stack<string>(lists[index]);
     }
 
-    Regex matcher = new Regex(@"move (\d*) from (\d*) to (\d*)", RegexOptions.Compiled);
+    return (stacks, currentLine);
+}
 
-    foreach(var line in lines.Skip(currentLine))
+(int number, int from, int to) ParseInstruction(string line)
+{
+    var match = matcher.Match(line);
+
+    var number = int.Parse(match.Groups[1].Value);
+    var from = int.Parse(match.Groups[2].Value) - 1;
+    var to = int.Parse(match.Groups[3].Value) - 1;
+
+    return (number, from, to);
+}
+
+string TopMostCrates(List<Stack<string>> stacks) => string.Concat(stacks.Select(_ => _.Peek()));
+
+string Part1(string input)
+{
+    var lineList = InputToLineList(input);
+
+    var (stacks, currentLine) = ReadMap(lineList);
+
+    foreach (var line in lineList.Skip(currentLine))
     {
-        var match = matcher.Match(line);
+        var (number, from, to) = ParseInstruction(line);
 
-        if(!match.Success)
-        {
-            continue;
-        }
-
-        var number = int.Parse(match.Groups[1].Value);
-        var from = int.Parse(match.Groups[2].Value) - 1;
-        var to = int.Parse(match.Groups[3].Value) - 1;
-
-        for(int step = 0; step < number; ++step)
+        for (int step = 0; step < number; ++step)
         {
             stacks[to].Push(stacks[from].Pop());
         }
-    } 
+    }
 
-    return string.Concat(stacks.Select(_ => _.Peek()));
+    return TopMostCrates(stacks);
 }
 
 string Part2(string input)
 {
-    var lines = 
-        input.Split('\n')
-        .Where(_ => !string.IsNullOrWhiteSpace(_))
-        .Select(_ => _.Replace("\r",""))
-        .ToList();
+    var lineList = InputToLineList(input);
 
-    var firstLine = lines[0];
+    var (stacks, currentLine) = ReadMap(lineList);
 
-    var stackCount = (int)Math.Ceiling((decimal)firstLine.Length / 4m);
+    List<string> removedCrates = new();
 
-    var lists = new List<List<string>>(stackCount);
-
-    var stacks = new List<Stack<string>>(stackCount);
-
-    for (var i = 0; i < stackCount; ++i)
+    foreach (var line in lineList.Skip(currentLine))
     {
-        lists.Add(new List<string>());
-        stacks.Add(new Stack<string>());
-    }
+        var (number, from, to) = ParseInstruction(line);
 
-    var currentLine = 0;
-
-    while (true)
-    {
-        var line = lines[currentLine++];
-
-        if (line.StartsWith(" 1   2"))
+        if(number == 1)
         {
-            break;
-        }
-
-        for (var index = 0; index < stackCount; ++index)
-        {
-            var slot = line.Substring(4 * index + 1, 1);
-
-            if(slot == " ")
-            {
-                continue;
-            }
-
-            lists[index].Add(slot);
-        }
-    }
-
-    for (var index = 0; index < stackCount; ++index)
-    {
-        lists[index].Reverse();
-        stacks[index] = new Stack<string>(lists[index]);
-    }
-
-    Regex matcher = new Regex(@"move (\d*) from (\d*) to (\d*)", RegexOptions.Compiled);
-
-    foreach(var line in lines.Skip(currentLine))
-    {
-        var match = matcher.Match(line);
-
-        if(!match.Success)
-        {
+            stacks[to].Push(stacks[from].Pop());
             continue;
         }
 
-        var number = int.Parse(match.Groups[1].Value);
-        var from = int.Parse(match.Groups[2].Value) - 1;
-        var to = int.Parse(match.Groups[3].Value) - 1;
+        removedCrates.Clear();
 
-        List<string> removed = new ();
-
-        for(int step = 0; step < number; ++step)
+        do
         {
-            removed.Add(stacks[from].Pop());
-        }
+            removedCrates.Add(stacks[from].Pop());
+            --number;
+        } while (number > 0);
 
-        removed.Reverse();
+        removedCrates.Reverse();
 
-        foreach (var crate in removed)
+        foreach (var crate in removedCrates)
         {
             stacks[to].Push(crate);
         }
+    }
 
-    } 
-
-    return string.Concat(stacks.Select(_ => _.Peek()));
+    return TopMostCrates(stacks);
 }
