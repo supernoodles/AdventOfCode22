@@ -6,26 +6,21 @@ var inputTest = """
 mjqjpqmgbljsphdztnvjfqwrcgsmlb
 """;
 
-Console.WriteLine($"Part1 = {Part1(input)}");
+Console.WriteLine($"Part1 = {Partn(input, 4)}");
 
-Console.WriteLine($"Part2 = {Part2(input)}");
+Console.WriteLine($"Part2 = {Partn(input, 14)}");
 
-int Part1(string input)
+int Partn(string input, int markerLength)
 {
     for (var index = 0; index < input.Length; ++index)
     {
-        var markerCandidate = input.Skip(index).Take(4);
+        var markerCandidate = input.Skip(index).Take(markerLength);
 
         if(!markerCandidate.GroupBy(_ => _).Any(_ => _.Count() > 1))
         {
-            return index + 4;
+            return index + markerLength;
         }
     }
     
-    return 0;
-}
-
-int Part2(string input)
-{
     return 0;
 }
