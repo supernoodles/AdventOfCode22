@@ -10,9 +10,13 @@ var inputTest = """
 35390
 """;
 
-Console.WriteLine($"Part1 = {Part1(input)}");
+Dictionary<int,int[]> ColumnCache = new ();
 
-Console.WriteLine($"Part2 = {Part2(inputTest)}");
+var (treeMap, width, height) = ParseTreeMap(input);
+
+Console.WriteLine($"Part1 = {Part1(treeMap, width, height)}");
+
+Console.WriteLine($"Part2 = {Part2(treeMap, width, height)}");
 
 List<string> InputToLineList(string input) => 
     input
@@ -21,7 +25,7 @@ List<string> InputToLineList(string input) =>
         .Select(_ => _.Replace("\r", ""))
         .ToList();
 
-int Part1(string input)
+(int[] map, int width, int height) ParseTreeMap(string input)
 {
     var lines = InputToLineList(input);
 
@@ -45,31 +49,36 @@ int Part1(string input)
         ++row;
     }
 
+    return (treeHeights, width, height);
+}
+
+int Part1(int[] treeHeights, int width, int height)
+{
     var visiblePerimeter = 2 * width + 2 * height - 4;
 
     var visibleInternal = 0;
 
-    for(row = 1; row < height - 1; ++row)
+    for(var row = 1; row < height - 1; ++row)
     {
-        var allRow = treeHeights.Skip(row * width).Take(width).ToArray();
+        var currentRow = treeHeights.Skip(row * width).Take(width).ToArray();
 
         for(var col = 1; col < width - 1; ++col)
         {
-            var allCol = GetColumn(col, treeHeights, width, height);
+            var currentCol = GetColumn(col, treeHeights, width, height);
 
             var currentTreeHeight = treeHeights[row * width + col];
 
             //Left
-            var leftVisible = !allRow.Take(col).Any(_ => _ >= currentTreeHeight);
+            var leftVisible = !currentRow.Take(col).Any(_ => _ >= currentTreeHeight);
 
             //Right
-            var rightVisible = !allRow.Skip(col + 1).Any(_ => _ >= currentTreeHeight);
+            var rightVisible = !currentRow.Skip(col + 1).Any(_ => _ >= currentTreeHeight);
 
             //Top
-            var topVisible = !allCol.Take(row).Any(_ => _ >= currentTreeHeight);
+            var topVisible = !currentCol.Take(row).Any(_ => _ >= currentTreeHeight);
 
             //Bottom
-            var bottomVisible = !allCol.Skip(row + 1).Any(_ => _ >= currentTreeHeight);
+            var bottomVisible = !currentCol.Skip(row + 1).Any(_ => _ >= currentTreeHeight);
 
             if(leftVisible || rightVisible || topVisible || bottomVisible)
             {
@@ -81,12 +90,58 @@ int Part1(string input)
     return visibleInternal + visiblePerimeter;
 }
 
-int Part2(string input)
+int TreesSeen(IEnumerable<int> range, Func<int,int> height, int currentTreeHeight)
 {
-    return 0;
+    var count = 0;
+    foreach (var index in range)
+    {
+        ++count;
+
+        if (height(index) >= currentTreeHeight)
+        {
+            break;
+        }
+    }
+
+    return count;
 }
 
-int[] GetColumn(int col, int[] array, int width, int height) =>
-    Enumerable.Range(0, height)
+int Part2(int[] treeHeights, int width, int height)
+{
+    List<int> scores = new ();
+
+    for(var row = 1; row < height - 1; ++row)
+    {
+        var currentRow = treeHeights.Skip(row * width).Take(width).ToArray();
+
+        for(var col = 1; col < width - 1; ++col)
+        {
+            var currentCol = GetColumn(col, treeHeights, width, height);
+
+            var currentTreeHeight = treeHeights[row * width + col];
+
+            var left = TreesSeen(Enumerable.Range(0, col).Reverse(), _ => currentRow[_], currentTreeHeight);
+            var right = TreesSeen(Enumerable.Range(col + 1, width - col - 1), _ => currentRow[_], currentTreeHeight);
+            var top = TreesSeen(Enumerable.Range(0, row).Reverse(), _ => currentCol[_], currentTreeHeight);
+            var bottom = TreesSeen(Enumerable.Range(row + 1, height - row - 1), _ => currentCol[_], currentTreeHeight);
+
+            scores.Add(left * right * top * bottom);
+        }
+    }
+
+    return scores.Max();
+}
+
+int[] GetColumn(int col, int[] array, int width, int height)
+{
+    if(ColumnCache.TryGetValue(col, out var column))
+    {
+        return column;
+    }
+
+    ColumnCache[col] = Enumerable.Range(0, height)
         .Select(_ => array[width * _ + col])
         .ToArray();
+
+    return ColumnCache[col];
+}
