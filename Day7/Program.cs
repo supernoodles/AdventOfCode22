@@ -28,9 +28,11 @@ $ ls
 7214296 k
 """;
 
-Console.WriteLine($"Part1 = {Part1(input)}");
+var root = ParseSession(InputToLineList(input)); 
 
-Console.WriteLine($"Part2 = {Part2(input)}");
+Console.WriteLine($"Part1 = {Part1(root)}");
+
+Console.WriteLine($"Part2 = {Part2(root)}");
 
 List<string> InputToLineList(string input) => 
     input
@@ -39,10 +41,22 @@ List<string> InputToLineList(string input) =>
         .Select(_ => _.Replace("\r", ""))
         .ToList();
 
-int Part1(string input)
-{
-    var lines = InputToLineList(input);
+int Part1(Folder root) =>
+    FindTotalWhereFolderLt100000(root);
 
+int Part2(Folder root)
+{
+    var required = 30000000 - (70000000 - root.TotalSize);
+
+    Console.WriteLine($"Space required = {required}");
+
+    List<Folder> candidates = FindByMinSize(required, root, new List<Folder>());
+
+    return candidates.MinBy(_ => _.TotalSize).TotalSize; 
+}
+
+Folder ParseSession(IList<string> lines)
+{
     Folder root = new ("/", null);
 
     var currentFolder = root;
@@ -78,14 +92,9 @@ int Part1(string input)
         currentFolder.Files.Add(file);
     }
 
-    Console.WriteLine(root.CalcSize());
+    root.CalcSize();
 
-    return FindTotalWhereFolderLt100000(root);
-}
-
-int Part2(string input)
-{
-    return 0;
+    return root;
 }
 
 int FindTotalWhereFolderLt100000(Folder folder)
@@ -95,6 +104,21 @@ int FindTotalWhereFolderLt100000(Folder folder)
     return folder.TotalSize < 100000
         ? folder.TotalSize + subs
         : subs;
+}
+
+List<Folder> FindByMinSize(int minSize, Folder folder, List<Folder> candidates)
+{
+    foreach (var sub in folder.SubFolders)
+    {
+        FindByMinSize(minSize, sub, candidates);
+    }
+
+    if (folder.TotalSize >= minSize)
+    {
+        candidates.Add(folder);
+    }
+
+    return candidates;
 }
 
 class Folder
@@ -119,12 +143,7 @@ class Folder
 
     public int CalcSize()
     {
-        var fileTotal = Files.Sum(file => file.Size);
-
-        var dirTotal = SubFolders.Sum(_ => _.CalcSize());
-
-        TotalSize = fileTotal + dirTotal;
-
+        TotalSize = Files.Sum(_ => _.Size) + SubFolders.Sum(_ => _.CalcSize());
         return TotalSize;
     }
 }
