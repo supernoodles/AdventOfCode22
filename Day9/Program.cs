@@ -13,7 +13,7 @@ L 5
 R 2
 """;
 
-List<string> InputToLineList(string input) => 
+List<string> InputToLineList(string input) =>
     input
         .Split('\n')
         .Where(_ => !string.IsNullOrWhiteSpace(_))
@@ -22,7 +22,7 @@ List<string> InputToLineList(string input) =>
 
 var lineList = InputToLineList(input);//Test);
 
-HashSet<Position> Visited = new ();
+HashSet<Position> Visited = new();
 
 Console.WriteLine($"Part1 = {Part1(lineList, Visited)}");
 
@@ -30,31 +30,29 @@ Console.WriteLine($"Part2 = {Part2(lineList)}");
 
 Position FindTail(Position head, Position tail)
 {
-    if (head.Y == tail.Y)
+    if (head.Y == tail.Y || head.X == tail.X)
     {
-        if(Math.Abs(head.X - tail.X) == 2)
+        if (Math.Abs(head.X - tail.X) == 2)
         {
             tail = tail with { X = head.X < tail.X ? tail.X - 1 : tail.X + 1 };
+
+            return tail;
         }
 
-        return tail;
-    }
-
-    if (head.X == tail.X)
-    {
-        if(Math.Abs(head.Y - tail.Y) == 2)
+        if (Math.Abs(head.Y - tail.Y) == 2)
         {
             tail = tail with { Y = head.Y < tail.Y ? tail.Y - 1 : tail.Y + 1 };
-        }
 
-        return tail;
+            return tail;
+        }
     }
 
     if (Math.Abs(head.Y - tail.Y) == 2 || Math.Abs(head.X - tail.X) == 2)
     {
-        tail = tail with { 
-            X = head.X < tail.X ? tail.X - 1 : tail.X + 1, 
-            Y = head.Y < tail.Y ? tail.Y - 1 : tail.Y + 1 
+        tail = tail with
+        {
+            X = head.X < tail.X ? tail.X - 1 : tail.X + 1,
+            Y = head.Y < tail.Y ? tail.Y - 1 : tail.Y + 1
         };
 
         return tail;
@@ -65,6 +63,14 @@ Position FindTail(Position head, Position tail)
 
 int Part1(List<string> inputLines, HashSet<Position> visited)
 {
+    Dictionary<char, Func<Position, Position>> movements = new Dictionary<char, Func<Position, Position>>() 
+    {
+        {'U', _ => _ with { Y = _.Y + 1 }},
+        {'D', _ => _ with { Y = _.Y - 1 }},
+        {'L', _ => _ with { X = _.X + 1 }},
+        {'R', _ => _ with { X = _.X - 1 }}
+    };
+
     Position head = new (0, 0);
     Position tail = new (0, 0);
 
@@ -75,32 +81,13 @@ int Part1(List<string> inputLines, HashSet<Position> visited)
 
         for (int repeat = 0; repeat < number; ++repeat)
         {
-            switch(direction)
-            {
-                case 'U':
-                    head = head with { Y = head.Y + 1};
-                    break;
-            
-                case 'D':
-                    head = head with { Y = head.Y - 1};
-                    break;
-
-                case 'L':
-                    head = head with { X = head.X - 1};
-                    break;
-
-                case 'R':
-                    head = head with { X = head.X + 1};
-                    break;
-            }
+            head = movements[direction](head);
 
             tail = FindTail(head, tail);
 
             visited.Add(tail);
         }
     }
- 
-    Console.WriteLine(head);
 
     return visited.Count();
 }
