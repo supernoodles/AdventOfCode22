@@ -40,7 +40,7 @@ Position FindNextKnotPosition(Position current, Position next)
 
 int Part1(string[] inputLines, HashSet<Position> visited)
 {
-    Dictionary<char, Func<Position, Position>> movements = new Dictionary<char, Func<Position, Position>>()
+    Dictionary<char, Func<Position, Position>> movements = new ()
     {
         {'U', _ => _ with { Y = _.Y + 1 }},
         {'D', _ => _ with { Y = _.Y - 1 }},
@@ -55,7 +55,8 @@ int Part1(string[] inputLines, HashSet<Position> visited)
         .Select(line =>
             new { Direction = line[0], Number = int.Parse(line[2..]) })
         .SelectMany(instruction =>
-            Enumerable.Range(0, instruction.Number)
+            Enumerable
+                .Range(0, instruction.Number)
                 .Select(_ =>
                 {
                     head = movements[instruction.Direction](head);
