@@ -161,24 +161,7 @@ Console.WriteLine($"Part2 = \r\n{SolvePart2(input)}");
 
 int SolvePart1(string[] inputLines)
 {
-    var X = 1;
-
-    var runtimeResults =
-        inputLines
-            .Select(_ => new { Instruction = _[0..4], Arg = _.Count() > 4 ? int.Parse(_[5..]) : 0 })
-            .SelectMany(operation =>
-            {
-                if (operation.Instruction == "noop")
-                {
-                    return new[] { X };
-                }
-
-                var oldX = X;
-                X += operation.Arg;
-
-                return new[] { oldX, oldX };
-            })
-            .ToList();
+    List<int> runtimeResults = RunProgram(inputLines);
 
     return Enumerable.Range(0, 6)
         .Select(_ => 20 + _ * 40)
@@ -188,9 +171,22 @@ int SolvePart1(string[] inputLines)
 
 string SolvePart2(string[] inputLines)
 {
+    List<int> runtimeResults = RunProgram(inputLines);
+
+    return
+        Enumerable
+            .Range(0, 240)
+            .Select(pixel => pixel % 40 >= runtimeResults[pixel] - 1 && pixel % 40 <= runtimeResults[pixel] + 1 ? "#" : ".")
+            .Select((pixel, i) => i > 0 && (i + 1) % 40 == 0 ? $"{pixel}\r\n" : pixel)
+            .Aggregate(new StringBuilder(), (sb, pixel) => sb.Append(pixel))
+            .ToString();
+}
+
+static List<int> RunProgram(string[] inputLines)
+{
     var X = 1;
 
-    var runtimeResults =
+    return 
         inputLines
             .Select(_ => new { Instruction = _[0..4], Arg = _.Count() > 4 ? int.Parse(_[5..]) : 0 })
             .SelectMany(operation =>
@@ -206,12 +202,4 @@ string SolvePart2(string[] inputLines)
                 return new[] { oldX, oldX };
             })
             .ToList();
-
-    return
-        Enumerable
-            .Range(0, 240)
-            .Select(pixel => pixel % 40 >= runtimeResults[pixel] - 1 && pixel % 40 <= runtimeResults[pixel] + 1 ? "#" : ".")
-            .Select((pixel, i) => i > 0 && (i + 1) % 40 == 0 ? $"{pixel}\r\n" : pixel)
-            .Aggregate(new StringBuilder(), (sb, pixel) => sb.Append(pixel))
-            .ToString();
 }
