@@ -1,4 +1,6 @@
-﻿Console.WriteLine("Hello, AdventOfCode Day 10!");
+﻿using System.Text;
+
+Console.WriteLine("Hello, AdventOfCode Day 10!");
 
 var input = System.IO.File.ReadAllLines("input.txt");
 
@@ -153,11 +155,11 @@ noop
 
 //var input = inputTest.Split("\r\n");
 
-Console.WriteLine($"Part1 = {Solve(input)}");
+Console.WriteLine($"Part1 = {SolvePart1(input)}");
 
-Console.WriteLine($"Part2 = {Solve(input)}");
+Console.WriteLine($"Part2 = \r\n{SolvePart2(input)}");
 
-int Solve(string[] inputLines)
+int SolvePart1(string[] inputLines)
 {
     var X = 1;
 
@@ -182,4 +184,34 @@ int Solve(string[] inputLines)
         .Select(_ => 20 + _ * 40)
         .Select(_ => runtimeResults[_ - 1] * _)
         .Sum();
+}
+
+string SolvePart2(string[] inputLines)
+{
+    var X = 1;
+
+    var runtimeResults =
+        inputLines
+            .Select(_ => new { Instruction = _[0..4], Arg = _.Count() > 4 ? int.Parse(_[5..]) : 0 })
+            .SelectMany(operation =>
+            {
+                if (operation.Instruction == "noop")
+                {
+                    return new[] { X };
+                }
+
+                var oldX = X;
+                X += operation.Arg;
+
+                return new[] { oldX, oldX };
+            })
+            .ToList();
+
+    return
+        Enumerable
+            .Range(0, 240)
+            .Select(pixel => pixel % 40 >= runtimeResults[pixel] - 1 && pixel % 40 <= runtimeResults[pixel] + 1 ? "#" : ".")
+            .Select((pixel, i) => i > 0 && (i + 1) % 40 == 0 ? $"{pixel}\r\n" : pixel)
+            .Aggregate(new StringBuilder(), (sb, pixel) => sb.Append(pixel))
+            .ToString();
 }
