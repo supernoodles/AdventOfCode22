@@ -13,11 +13,9 @@ L 5
 R 2
 """;
 
-HashSet<Position> Visited = new();
+Console.WriteLine($"Part1 = {Solve(input, 2)}");
 
-Console.WriteLine($"Part1 = {Part1(input, Visited)}");
-
-Console.WriteLine($"Part2 = {Part2(input)}");
+Console.WriteLine($"Part2 = {Solve(input, 10)}");
 
 Position FindNextKnotPosition(Position current, Position next)
 {
@@ -38,8 +36,10 @@ Position FindNextKnotPosition(Position current, Position next)
     return next;
 }
 
-int Part1(string[] inputLines, HashSet<Position> visited)
+int Solve(string[] inputLines, int ropeLength)
 {
+    HashSet<Position> visited = new ();
+
     Dictionary<char, Func<Position, Position>> movements = new ()
     {
         {'U', _ => _ with { Y = _.Y + 1 }},
@@ -48,8 +48,11 @@ int Part1(string[] inputLines, HashSet<Position> visited)
         {'R', _ => _ with { X = _.X - 1 }}
     };
 
-    Position head = new(0, 0);
-    Position tail = new(0, 0);
+    var rope = 
+        Enumerable
+            .Range(0, ropeLength)
+            .Select(_ => new Position(0, 0))
+            .ToArray();
 
     inputLines
         .Select(line =>
@@ -59,25 +62,25 @@ int Part1(string[] inputLines, HashSet<Position> visited)
                 .Range(0, instruction.Number)
                 .Select(_ =>
                 {
-                    head = movements[instruction.Direction](head);
+                    rope[0] = movements[instruction.Direction](rope[0]);
 
-                    tail = FindNextKnotPosition(head, tail);
+                    Enumerable
+                        .Range(1, ropeLength - 1)
+                        .ToList()
+                        .ForEach(next => 
+                            rope[next] = FindNextKnotPosition(rope[next - 1], rope[next]));
 
-                    return tail;
+                    return rope[ropeLength - 1];
                 })
         )
-        .Aggregate(visited, (set, position) =>
+        .Aggregate(visited, 
+            (set, position) =>
             {
                 set.Add(position);
                 return set;
             });
 
     return visited.Count();
-}
-
-string Part2(string[] inputLines)
-{
-    return "";
 }
 
 record Position(int X, int Y);
