@@ -1,6 +1,6 @@
 ﻿Console.WriteLine("Hello, AdventOfCode Day 9!");
 
-var input = System.IO.File.ReadAllText("input.txt");
+var input = System.IO.File.ReadAllLines("input.txt");
 
 var inputTest = """
 R 4
@@ -13,57 +13,34 @@ L 5
 R 2
 """;
 
-List<string> InputToLineList(string input) =>
-    input
-        .Split('\n')
-        .Where(_ => !string.IsNullOrWhiteSpace(_))
-        .Select(_ => _.Replace("\r", ""))
-        .ToList();
-
-var lineList = InputToLineList(input);//Test);
-
 HashSet<Position> Visited = new();
 
-Console.WriteLine($"Part1 = {Part1(lineList, Visited)}");
+Console.WriteLine($"Part1 = {Part1(input, Visited)}");
 
-Console.WriteLine($"Part2 = {Part2(lineList)}");
+Console.WriteLine($"Part2 = {Part2(input)}");
 
-Position FindTail(Position head, Position tail)
+Position FindNextKnotPosition(Position current, Position next)
 {
-    if (head.Y == tail.Y || head.X == tail.X)
+    var deltaX = current.X - next.X;
+    var deltaY = current.Y - next.Y;
+
+    if (Math.Abs(deltaY) < 2 && Math.Abs(deltaX) < 2)
     {
-        if (Math.Abs(head.X - tail.X) == 2)
-        {
-            tail = tail with { X = head.X < tail.X ? tail.X - 1 : tail.X + 1 };
-
-            return tail;
-        }
-
-        if (Math.Abs(head.Y - tail.Y) == 2)
-        {
-            tail = tail with { Y = head.Y < tail.Y ? tail.Y - 1 : tail.Y + 1 };
-
-            return tail;
-        }
+        return next;
     }
 
-    if (Math.Abs(head.Y - tail.Y) == 2 || Math.Abs(head.X - tail.X) == 2)
+    next = next with
     {
-        tail = tail with
-        {
-            X = head.X < tail.X ? tail.X - 1 : tail.X + 1,
-            Y = head.Y < tail.Y ? tail.Y - 1 : tail.Y + 1
-        };
+        X = next.X + Math.Sign(deltaX),
+        Y = next.Y + Math.Sign(deltaY)
+    };
 
-        return tail;
-    }
-
-    return tail;
+    return next;
 }
 
-int Part1(List<string> inputLines, HashSet<Position> visited)
+int Part1(string[] inputLines, HashSet<Position> visited)
 {
-    Dictionary<char, Func<Position, Position>> movements = new Dictionary<char, Func<Position, Position>>() 
+    Dictionary<char, Func<Position, Position>> movements = new Dictionary<char, Func<Position, Position>>()
     {
         {'U', _ => _ with { Y = _.Y + 1 }},
         {'D', _ => _ with { Y = _.Y - 1 }},
@@ -71,28 +48,33 @@ int Part1(List<string> inputLines, HashSet<Position> visited)
         {'R', _ => _ with { X = _.X - 1 }}
     };
 
-    Position head = new (0, 0);
-    Position tail = new (0, 0);
+    Position head = new(0, 0);
+    Position tail = new(0, 0);
 
-    foreach (var line in inputLines)
-    {
-        var direction = line[0];
-        var number = int.Parse(line[2..]);
+    inputLines
+        .Select(line =>
+            new { Direction = line[0], Number = int.Parse(line[2..]) })
+        .SelectMany(instruction =>
+            Enumerable.Range(0, instruction.Number)
+                .Select(_ =>
+                {
+                    head = movements[instruction.Direction](head);
 
-        for (int repeat = 0; repeat < number; ++repeat)
-        {
-            head = movements[direction](head);
+                    tail = FindNextKnotPosition(head, tail);
 
-            tail = FindTail(head, tail);
-
-            visited.Add(tail);
-        }
-    }
+                    return tail;
+                })
+        )
+        .Aggregate(visited, (set, position) =>
+            {
+                set.Add(position);
+                return set;
+            });
 
     return visited.Count();
 }
 
-string Part2(List<string> inputLines)
+string Part2(string[] inputLines)
 {
     return "";
 }
