@@ -2,5 +2,5 @@
 
 public class Class1
 {
-    public int Test() => 42;
+    public int Test() => 43;
 }
