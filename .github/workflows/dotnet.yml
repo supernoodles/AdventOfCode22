@@ -25,7 +25,7 @@ jobs:
     - name: Build
       run: dotnet build --no-restore ghtest
     - name: Test
-      run: dotnet test --no-build --verbosity normal ghtest --logger "trx;LogFileName=test-results.trx"
+      run: dotnet test --no-build --verbosity normal ghtest --logger "trx;LogFileName=test-results/test-results.trx"
     - name: Publish Test Results
       uses: EnricoMi/publish-unit-test-result-action@v2
       if: always()
